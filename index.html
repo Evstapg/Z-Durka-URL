@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Z-Durka Loading Screen</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+        }
+        .bg-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+
+        .bg-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        .bg-slide.active {
+            opacity: 1;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%);
+            z-index: 2;
+        }
+
+        .container {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+                            
+        .server-title {
+            font-size: 6rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            margin-bottom: 50px;
+            text-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+        }
+
+        .red-z {
+            color: #ff2a2a;
+            text-shadow: 0 0 25px rgba(255, 42, 42, 0.8);
+        }
+
+        .white-durka {
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+
+        .loading-wrapper {
+            width: 80%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.05rem;
+            color: #e0e0e0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+            font-weight: 500;
+        }
+
+        .status-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 85%;
+            text-align: left;
+        }
+
+        .progress-percentage {
+            color: #ff2a2a;
+            font-weight: 700;
+        }
+
+
+        .progress-line-container {
+            width: 100%;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #b30000, #ff2a2a);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 42, 42, 0.9);
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="bg-slider">
+        <div id="slide1" class="bg-slide active" style="background-image: url('pictures/main1.png');"></div>
+        <div id="slide2" class="bg-slide"></div>
+    </div>
+
+    <div class="overlay"></div>
+
+  
+    <audio id="bg-music" src="music/mus1.mp3" loop preload="auto"></audio>
+
+    <div class="container">
+        <h1 class="server-title"><span class="red-z">Z</span><span class="white-durka">-Durka</span></h1>
+
+        <div class="loading-wrapper">
+            <div class="status-row">
+                <div id="status" class="status-text">Подключение к серверу...</div>
+                <div id="percentage" class="progress-percentage">0%</div>
+            </div>
+            <div class="progress-line-container">
+                <div id="progress" class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const audio = document.getElementById('bg-music');
+        let audioStarted = false;
+
+        function playMusic() {
+            if (!audio) return;
+            audio.volume = 0.3;
+            audio.loop = true;  
+
+            let playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    audioStarted = true;
+                }).catch(err => {
+                    
+                    console.log("Ожидание события для запуска аудио...");
+                });
+            }
+        }
+
+  
+        window.addEventListener('load', playMusic);
+        document.addEventListener('click', playMusic);
+        document.addEventListener('mousemove', playMusic);
+        document.addEventListener('keydown', playMusic);
+
+     
+        const images = [
+            'pictures/main1.png',
+            'pictures/main2.png',
+            'pictures/main3.png',
+            'pictures/main4.png',
+            'pictures/main5.png',
+            'pictures/main6.png',
+            'pictures/main7.png',
+            'pictures/main8.png',
+            'pictures/main9.png',
+            'pictures/main10.png'
+        ];
+
+        let currentIndex = 0;
+        let activeSlideNum = 1;
+
+        setInterval(() => {
+            currentIndex = (currentIndex + 1) % images.length;
+            
+            const currentSlide = document.getElementById(`slide${activeSlideNum}`);
+            activeSlideNum = activeSlideNum === 1 ? 2 : 1;
+            const nextSlide = document.getElementById(`slide${activeSlideNum}`);
+
+            nextSlide.style.backgroundImage = `url('${images[currentIndex]}')`;
+            nextSlide.classList.add('active');
+            currentSlide.classList.remove('active');
+        }, 10000);
+
+        let totalFiles = 1;
+        let neededFiles = 1;
+
+        function updateProgress() {
+            if (totalFiles <= 0) return;
+            let downloaded = totalFiles - neededFiles;
+            let percent = Math.min(Math.max(Math.floor((downloaded / totalFiles) * 100), 0), 100);
+            
+            document.getElementById('progress').style.width = percent + '%';
+            document.getElementById('percentage').innerText = percent + '%';
+        }
+
+
+        function DownloadingFile(fileName) {
+            document.getElementById('status').innerText = 'Загрузка: ' + fileName;
+            updateProgress();
+            if (!audioStarted) playMusic(); 
+        }
+
+        function SetStatusChanged(status) {
+            document.getElementById('status').innerText = status;
+            if (!audioStarted) playMusic(); 
+        }
+
+        function SetFilesTotal(total) {
+            totalFiles = Math.max(total, 1);
+            updateProgress();
+            if (!audioStarted) playMusic();
+        }
+
+        function SetFilesNeeded(needed) {
+            neededFiles = needed;
+            updateProgress();
+            if (!audioStarted) playMusic();
+        }
+    </script>
+</body>
+</html>
