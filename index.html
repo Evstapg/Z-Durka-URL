@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Z-Durka Loading Screen</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&display=swap" rel="stylesheet">
+
     <style>
         * {
             box-sizing: border-box;
@@ -19,7 +24,7 @@
             background-color: #050505;
             color: #ffffff;
         }
-
+ 
         .bg-slider {
             position: absolute;
             top: 0;
@@ -51,33 +56,76 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%);
+            background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%);
             z-index: 2;
         }
 
-        .container {
-            position: relative;
+        .sidebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 35%; 
+            min-width: 450px;
+            height: 100%;
+            background-color: #000000;
             z-index: 3;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: center;
-            height: 100%;
-            text-align: center;
-            padding: 0 20px;
+            align-items: flex-start;
+            padding: 0 50px;
+            box-shadow: 15px 0 50px rgba(0,0,0,0.9);
+            overflow: hidden;
         }
 
+    
+        .grid-bg {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                linear-gradient(rgba(160, 0, 0, 0.3) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(160, 0, 0, 0.3) 2px, transparent 2px);
+            background-size: 40px 40px;
+            z-index: -2;
+            animation: gridFlow 4s linear infinite;
+        }
+
+        .grid-vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 40% 50%, transparent 10%, #000000 85%);
+            z-index: -1;
+        }
+
+        @keyframes gridFlow {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+        }
+
+
+    
         .server-title {
-            font-size: 6rem;
-            font-weight: 900;
-            letter-spacing: 4px;
-            margin-bottom: 50px;
+            font-family: 'Chakra Petch', sans-serif;
+            text-transform: uppercase;
+            font-size: 5rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
             text-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+            text-align: left;
+            position: relative;
+            z-index: 4;
         }
 
         .red-z {
-            color: #ff2a2a;
-            text-shadow: 0 0 25px rgba(255, 42, 42, 0.8);
+            color: #ff0000;
+            text-shadow: 0 0 25px rgba(255, 0, 0, 0.8);
         }
 
         .white-durka {
@@ -85,12 +133,37 @@
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
         }
 
+
+        .tips-container {
+            position: relative;
+            z-index: 4;
+            min-height: 60px;
+            margin-bottom: 30px;
+            color: #b0b0b0;
+            font-size: 1.1rem;
+            font-style: italic;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            max-width: 90%;
+        }
+
+        .tips-title {
+            color: #ff2a2a;
+            font-weight: bold;
+            font-style: normal;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
         .loading-wrapper {
-            width: 80%;
-            max-width: 600px;
+            width: 100%;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            position: relative;
+            z-index: 4;
         }
 
         .status-row {
@@ -133,22 +206,40 @@
             transition: width 0.3s ease;
             box-shadow: 0 0 10px rgba(255, 42, 42, 0.9);
         }
+
+        .credits {
+            position: absolute;
+            bottom: 30px;
+            left: 50px;
+            color: #7a7a7a;
+            font-size: 0.95rem;
+            font-weight: 500;
+            z-index: 4;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
 
     <div class="bg-slider">
-        <!-- Исправлен путь с pictures на picture -->
         <div id="slide1" class="bg-slide active" style="background-image: url('picture/main1.png');"></div>
         <div id="slide2" class="bg-slide"></div>
     </div>
-
     <div class="overlay"></div>
 
-    <audio id="bg-music" src="music/mus1.mp3" loop preload="auto"></audio>
+    <audio id="bg-music" loop preload="auto"></audio>
 
-    <div class="container">
+    <div class="sidebar">
+        <div class="grid-bg"></div>
+        <div class="grid-vignette"></div>
+
         <h1 class="server-title"><span class="red-z">Z</span><span class="white-durka">-Durka</span></h1>
+
+        <div class="tips-container" id="tips-container">
+            <div class="tips-title">Интересный факт:</div>
+            <div id="tip-text">Добро пожаловать на сервер. Подключение...</div>
+        </div>
 
         <div class="loading-wrapper">
             <div class="status-row">
@@ -159,11 +250,16 @@
                 <div id="progress" class="progress-bar"></div>
             </div>
         </div>
+        
+        <div class="credits">By: Evstapg & Konami</div>
     </div>
 
     <script>
         const audio = document.getElementById('bg-music');
         let audioStarted = false;
+
+        const randomTrackNum = Math.floor(Math.random() * 4) + 1;
+        audio.src = `music/mus${randomTrackNum}.mp3`; 
 
         function playMusic() {
             if (!audio) return;
@@ -184,6 +280,33 @@
         document.addEventListener('click', playMusic);
         document.addEventListener('mousemove', playMusic);
         document.addEventListener('keydown', playMusic);
+
+    
+        const zCityTips = [
+            "Z-Durka появилась ещё в октябре 2025 года как локалка",
+            "В режиме ДБД убийца бессмертен, не пытайтесь его убить",
+            "Мы проводим крутые ивенты почти каждый день",
+            "Качез не раздает патроны (наверное)",
+            "В нашем дискорд сервере возможно есть фури фембойчики",
+            "Никому не доверяй"
+        ];
+        
+        let currentTipIndex = 0;
+        const tipContainer = document.getElementById('tips-container');
+        const tipTextElement = document.getElementById('tip-text');
+
+        tipTextElement.innerText = zCityTips[0];
+        setInterval(() => {
+            tipContainer.style.opacity = 0;
+            
+     
+            setTimeout(() => {
+                currentTipIndex = (currentTipIndex + 1) % zCityTips.length;
+                tipTextElement.innerText = zCityTips[currentTipIndex];
+                tipContainer.style.opacity = 1;
+            }, 500); 
+        }, 5000);
+
 
         const images = [
             'picture/main1.png',
@@ -213,6 +336,7 @@
             currentSlide.classList.remove('active');
         }, 10000);
 
+    
         let totalFiles = 1;
         let neededFiles = 1;
 
