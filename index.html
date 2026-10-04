@@ -254,12 +254,12 @@
         <div class="credits">By: Evstapg & Konami</div>
     </div>
 
-    <script>
+<script>
         const audio = document.getElementById('bg-music');
         let audioStarted = false;
 
         const randomTrackNum = Math.floor(Math.random() * 4) + 1;
-        audio.src = `music/mus${randomTrackNum}.MP3`; 
+        audio.src = `music/mus${randomTrackNum}.mp3`; 
 
         function playMusic() {
             if (!audio) return;
@@ -281,43 +281,50 @@
         document.addEventListener('mousemove', playMusic);
         document.addEventListener('keydown', playMusic);
 
-    
         const zCityTips = [
             "Z-Durka появилась ещё в октябре 2025 года как локалка",
             "В режиме ДБД убийца бессмертен, не пытайтесь его убить",
             "Мы проводим крутые ивенты почти каждый день",
             "Качез не раздает патроны (наверное)",
             "В нашем дискорд сервере возможно есть фури фембойчики",
-            "Никому не доверяй"
+            "Никому не доверяй",
+            "Раньше здесь был мат",
+            "Тут был Зикерс",
+            "Кто прочитал тот тот который тот",
+            "привет",
+            "я сошёл с ума пытаясь пофиксить вайбкод",
+            "попробуйте City67",
+            "ненавижу html",
+            "я считаю что лост фронт слишком зафоршен",
+            "пижма не посмотрел стесняшку"
+
         ];
         
-        let currentTipIndex = 0;
+        let currentTipIndex = Math.floor(Math.random() * zCityTips.length);
         const tipContainer = document.getElementById('tips-container');
         const tipTextElement = document.getElementById('tip-text');
 
-        tipTextElement.innerText = zCityTips[0];
+        tipTextElement.innerText = zCityTips[currentTipIndex];
+        
         setInterval(() => {
             tipContainer.style.opacity = 0;
             
-     
             setTimeout(() => {
-                currentTipIndex = (currentTipIndex + 1) % zCityTips.length;
+                let newIndex;
+                do {
+                    newIndex = Math.floor(Math.random() * zCityTips.length);
+                } while (newIndex === currentTipIndex);
+                
+                currentTipIndex = newIndex;
                 tipTextElement.innerText = zCityTips[currentTipIndex];
                 tipContainer.style.opacity = 1;
             }, 500); 
         }, 5000);
 
-
         const images = [
-            'picture/main1.png',
-            'picture/main2.png',
-            'picture/main3.png',
-            'picture/main4.png',
-            'picture/main5.png',
-            'picture/main6.png',
-            'picture/main7.png',
-            'picture/main8.png',
-            'picture/main9.png',
+            'picture/main1.png', 'picture/main2.png', 'picture/main3.png',
+            'picture/main4.png', 'picture/main5.png', 'picture/main6.png',
+            'picture/main7.png', 'picture/main8.png', 'picture/main9.png',
             'picture/main10.png'
         ];
 
@@ -336,14 +343,16 @@
             currentSlide.classList.remove('active');
         }, 10000);
 
-    
-        let totalFiles = 1;
-        let neededFiles = 1;
+        let totalFiles = 0;
+        let neededFiles = 0;
 
         function updateProgress() {
-            if (totalFiles <= 0) return;
+            if (totalFiles === 0) return;
+            
             let downloaded = totalFiles - neededFiles;
-            let percent = Math.min(Math.max(Math.floor((downloaded / totalFiles) * 100), 0), 100);
+            let percent = Math.round((downloaded / totalFiles) * 100);
+            
+            percent = Math.min(Math.max(percent, 0), 100);
             
             document.getElementById('progress').style.width = percent + '%';
             document.getElementById('percentage').innerText = percent + '%';
@@ -351,7 +360,6 @@
 
         function DownloadingFile(fileName) {
             document.getElementById('status').innerText = 'Загрузка: ' + fileName;
-            updateProgress();
             if (!audioStarted) playMusic(); 
         }
 
@@ -361,7 +369,7 @@
         }
 
         function SetFilesTotal(total) {
-            totalFiles = Math.max(total, 1);
+            totalFiles = Math.max(totalFiles, total);
             updateProgress();
             if (!audioStarted) playMusic();
         }
@@ -372,5 +380,6 @@
             if (!audioStarted) playMusic();
         }
     </script>
+
 </body>
 </html>
