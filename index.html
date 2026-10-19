@@ -229,66 +229,89 @@
     <div class="credits">By: Evstapg &amp; Konami</div>
 
 <script>
-        /* ============================================================
-           МУЗЫКА
-           Плейлист из mus1..mus5 в случайном порядке. Если трек не
-           загрузился - сразу берётся следующий. Если браузер блокирует
-           автозапуск со звуком, музыка включится при первом клике или
-           нажатии любой клавиши.
-           ============================================================ */
-        const audio = document.getElementById('bg-music');
-        audio.volume = 0.3;
+      
+      /* ============================================================
+   МУЗЫКА (Улучшенная версия)
+   ============================================================ */
+const audio = document.getElementById('bg-music');
+audio.volume = 0.3;
 
-        const tracks = [1, 2, 3, 4, 5].map(n => 'music/mus' + n + '.mp3');
-        for (let i = tracks.length - 1; i > 0; i--) {          // перемешиваем
-            const j = Math.floor(Math.random() * (i + 1));
-            [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
-        }
+const tracks = [1, 2, 3, 4, 5].map(n => `music/mus${n}.mp3`);
 
-        let trackIndex = 0;
-        let audioStarted = false;
-        let failedInRow = 0;
+// Перемешивание Фишера — Йейтса
+for (let i = tracks.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
+}
 
-        function loadTrack(i) {
-            trackIndex = i % tracks.length;
-            audio.src = tracks[trackIndex];
-            audio.load();
-        }
+let trackIndex = 0;
+let audioUnlocked = false;
+let failedInRow = 0;
 
-        function playMusic() {
-            if (audioStarted || failedInRow >= tracks.length) return;
-            const p = audio.play();
-            if (p !== undefined) {
-                p.then(() => {
-                    audioStarted = true;
-                    failedInRow = 0;
-                }).catch(() => {
-                    // автозапуск заблокирован - тихо ждём первого клика/клавиши
-                });
+const unlockEvents = ['pointerdown', 'keydown', 'touchstart'];
+
+function removeUnlockListeners() {
+    unlockEvents.forEach(ev => document.removeEventListener(ev, unlockAudio));
+    window.removeEventListener('load', tryPlay);
+}
+
+function loadTrack(i) {
+    trackIndex = i % tracks.length;
+    audio.src = tracks[trackIndex];
+    audio.load();
+}
+
+function tryPlay() {
+    if (failedInRow >= tracks.length || !audio.paused) return;
+
+    const p = audio.play();
+    if (p !== undefined) {
+        p.then(() => {
+            failedInRow = 0; // Трек успешно заиграл — сбрасываем счётчик ошибок
+            if (!audioUnlocked) {
+                audioUnlocked = true;
+                removeUnlockListeners(); // Убираем лишние слушатели с документа
             }
-        }
-
-        audio.addEventListener('ended', () => {                 // следующий трек
-            loadTrack(trackIndex + 1);
-            audio.play().catch(() => {});
+        }).catch(() => {
+            // Автозапуск заблокирован браузером — ждём действия пользователя
         });
+    }
+}
 
-        audio.addEventListener('error', () => {                 // файл не найден / не читается
-            failedInRow++;
-            if (failedInRow >= tracks.length) return;
-            loadTrack(trackIndex + 1);
-            playMusic();
-        });
+function unlockAudio() {
+    if (audioUnlocked) return;
+    tryPlay();
+}
 
-        audio.addEventListener('canplay', playMusic);
+// Следующий трек по окончании текущего
+audio.addEventListener('ended', () => {
+    loadTrack(trackIndex + 1);
+    tryPlay();
+});
 
-        // первое действие игрока снимает блокировку автозапуска
-        ['pointerdown', 'mousedown', 'click', 'keydown', 'touchstart'].forEach(ev =>
-            document.addEventListener(ev, playMusic, { passive: true })
-        );
-        window.addEventListener('load', playMusic);
+// Если файл не найден или повреждён — пробуем следующий
+audio.addEventListener('error', () => {
+    failedInRow++;
+    if (failedInRow >= tracks.length) {
+        console.warn('Музыка: ни один из треков не удалось загрузить.');
+        removeUnlockListeners();
+        return;
+    }
+    loadTrack(trackIndex + 1);
+    tryPlay();
+});
 
-        loadTrack(0);
+// Когда трек подгрузился — пробуем запустить
+audio.addEventListener('canplay', tryPlay);
+
+// Слушаем первое действие игрока для снятия блокировки автозапуска
+unlockEvents.forEach(ev => 
+    document.addEventListener(ev, unlockAudio, { passive: true })
+);
+window.addEventListener('load', tryPlay);
+
+// Запуск
+loadTrack(0);
 
         /* ============================================================
            ФОН: медленный дрейф сам по себе + сдвиг за мышкой (как в GTA 4)
