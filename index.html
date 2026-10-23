@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Z-Durka Loading Screen</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+        }
+
+        /* ---------- фон: слайдер больше экрана, двигается скриптом ---------- */
+        .bg-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            will-change: transform;
+            transform: scale(1.14);
+        }
+
+        .bg-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        .bg-slide.active {
+            opacity: 1;
+        }
+
+        /* затемнение: центр чуть темнее для читаемости текста, края - сильнее */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.8) 100%);
+            z-index: 2;
+        }
+
+        /* ---------- всё содержимое по центру экрана ---------- */
+        .stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 24px;
+            will-change: transform;
+        }
+
+        .stage-inner {
+            width: min(680px, 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .server-title {
+            font-family: 'Chakra Petch', sans-serif;
+            text-transform: uppercase;
+            font-size: clamp(4rem, 11vw, 9rem);
+            font-weight: 700;
+            letter-spacing: 2px;
+            line-height: 1;
+            margin-bottom: 22px;
+            text-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+        }
+
+        .red-z {
+            color: #ff0000;
+            text-shadow: 0 0 25px rgba(255, 0, 0, 0.8);
+        }
+
+        .white-durka {
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .tips-container {
+            min-height: 70px;
+            margin-bottom: 38px;
+            color: #d0d0d0;
+            font-size: 1.15rem;
+            font-style: italic;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            max-width: 90%;
+        }
+
+        .tips-title {
+            color: #ff2a2a;
+            font-weight: bold;
+            font-style: normal;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .loading-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.05rem;
+            color: #e8e8e8;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+            font-weight: 500;
+        }
+
+        .status-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 85%;
+            text-align: left;
+        }
+
+        .progress-percentage {
+            color: #ff2a2a;
+            font-weight: 700;
+        }
+
+        .progress-line-container {
+            width: 100%;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.18);
+            border-radius: 3px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #b30000, #ff2a2a);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 42, 42, 0.9);
+        }
+
+        .credits {
+            position: absolute;
+            bottom: 28px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #9a9a9a;
+            font-size: 0.95rem;
+            font-weight: 500;
+            z-index: 4;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+            letter-spacing: 0.5px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-slider" id="bg-slider">
+        <div id="slide1" class="bg-slide active" style="background-image: url('picture/main1.png');"></div>
+        <div id="slide2" class="bg-slide"></div>
+    </div>
+    <div class="overlay"></div>
+
+    <audio id="bg-music" preload="auto"></audio>
+
+    <div class="stage" id="stage">
+        <div class="stage-inner">
+            <h1 class="server-title"><span class="red-z">Z</span><span class="white-durka">-Durka</span></h1>
+
+            <div class="tips-container" id="tips-container">
+                <div class="tips-title">Интересный факт:</div>
+                <div id="tip-text">Добро пожаловать на сервер. Подключение...</div>
+            </div>
+
+            <div class="loading-wrapper">
+                <div class="status-row">
+                    <div id="status" class="status-text">Подключение к серверу...</div>
+                    <div id="percentage" class="progress-percentage">0%</div>
+                </div>
+                <div class="progress-line-container">
+                    <div id="progress" class="progress-bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="credits">By: Evstapg &amp; Konami</div>
+
+<script>
+      
+/* ============================================================
+   МУЗЫКА (Улучшенная версия)
+   ============================================================ */
+const audio = document.getElementById('bg-music');
+audio.volume = 0.1;
+
+const tracks = [1, 2, 3, 4, 5].map(n => `music/mus${n}.mp3`);
+
+// Перемешивание Фишера — Йейтса
+for (let i = tracks.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
+}
+
+let trackIndex = 0;
+let audioUnlocked = false;
+let failedInRow = 0;
+
+const unlockEvents = ['pointerdown', 'keydown', 'touchstart'];
+
+function removeUnlockListeners() {
+    unlockEvents.forEach(ev => document.removeEventListener(ev, unlockAudio));
+    window.removeEventListener('load', tryPlay);
+}
+
+function loadTrack(i) {
+    trackIndex = i % tracks.length;
+    audio.src = tracks[trackIndex];
+    audio.load();
+}
+
+function tryPlay() {
+    if (failedInRow >= tracks.length || !audio.paused) return;
+
+    const p = audio.play();
+    if (p !== undefined) {
+        p.then(() => {
+            failedInRow = 0; // Трек успешно заиграл — сбрасываем счётчик ошибок
+            if (!audioUnlocked) {
+                audioUnlocked = true;
+                removeUnlockListeners(); // Убираем лишние слушатели с документа
+            }
+        }).catch(() => {
+            // Автозапуск заблокирован браузером — ждём действия пользователя
+        });
+    }
+}
+
+function unlockAudio() {
+    if (audioUnlocked) return;
+    tryPlay();
+}
+
+// Вызывается из функций GMod — каждый их вызов ещё раз пробует запустить музыку
+function startMusic() {
+    if (audioUnlocked) return;
+    tryPlay();
+}
+
+// Следующий трек по окончании текущего
+audio.addEventListener('ended', () => {
+    loadTrack(trackIndex + 1);
+    tryPlay();
+});
+
+// Если файл не найден или повреждён — пробуем следующий
+audio.addEventListener('error', () => {
+    failedInRow++;
+    if (failedInRow >= tracks.length) {
+        console.warn('Музыка: ни один из треков не удалось загрузить.');
+        removeUnlockListeners();
+        return;
+    }
+    loadTrack(trackIndex + 1);
+    tryPlay();
+});
+
+// Когда трек подгрузился — пробуем запустить
+audio.addEventListener('canplay', tryPlay);
+
+// Слушаем первое действие игрока для снятия блокировки автозапуска
+unlockEvents.forEach(ev => 
+    document.addEventListener(ev, unlockAudio, { passive: true })
+);
+window.addEventListener('load', tryPlay);
+
+// Запуск
+loadTrack(0);
+
+        /* ============================================================
+           ФОН: медленный дрейф сам по себе + сдвиг за мышкой (как в GTA 4)
+           ============================================================ */
+        const slider = document.getElementById('bg-slider');
+        const stage = document.getElementById('stage');
+
+        let mouseX = 0, mouseY = 0;      // цель, от -1 до 1
+        let smoothX = 0, smoothY = 0;    // сглаженное значение
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        function animateBackground(now) {
+            const t = now / 1000;
+            const W = window.innerWidth;
+            const H = window.innerHeight;
+
+            smoothX += (mouseX - smoothX) * 0.04;                // плавное догоняние
+            smoothY += (mouseY - smoothY) * 0.04;
+
+            // автоматический медленный дрейф и лёгкое "дыхание" масштаба
+            const driftX = Math.sin(t * 0.12) * 0.022 * W;
+            const driftY = Math.cos(t * 0.09) * 0.014 * H;
+            const scale = 1.14 + Math.sin(t * 0.05) * 0.015;
+
+            // картинка уходит против движения мыши
+            const x = driftX - smoothX * 0.035 * W;
+            const y = driftY - smoothY * 0.030 * H;
+
+            slider.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) scale(' + scale.toFixed(4) + ')';
+
+            // текст чуть двигается в другую сторону - даёт глубину
+            stage.style.transform = 'translate3d(' + (smoothX * 6).toFixed(1) + 'px,' + (smoothY * 4).toFixed(1) + 'px,0)';
+
+            requestAnimationFrame(animateBackground);
+        }
+        requestAnimationFrame(animateBackground);
+
+        /* ============================================================
+           СМЕНА КАРТИНОК
+           ============================================================ */
+        const images = [
+            'picture/main1.png', 'picture/main2.png', 'picture/main3.png',
+            'picture/main4.png', 'picture/main5.png', 'picture/main6.png',
+            'picture/main7.png', 'picture/main8.png', 'picture/main9.png',
+            'picture/main10.png'
+        ];
+
+        let currentIndex = 0;
+        let activeSlideNum = 1;
+
+        function preload(src) { const im = new Image(); im.src = src; }
+        preload(images[1]);
+
+        setInterval(() => {
+            currentIndex = (currentIndex + 1) % images.length;
+
+            const currentSlide = document.getElementById('slide' + activeSlideNum);
+            activeSlideNum = activeSlideNum === 1 ? 2 : 1;
+            const nextSlide = document.getElementById('slide' + activeSlideNum);
+
+            nextSlide.style.backgroundImage = "url('" + images[currentIndex] + "')";
+            nextSlide.classList.add('active');
+            currentSlide.classList.remove('active');
+
+            preload(images[(currentIndex + 1) % images.length]);
+        }, 10000);
+
+        /* ============================================================
+           ФАКТЫ
+           ============================================================ */
+        const zCityTips = [
+            "Z-Durka появилась ещё в октябре 2025 года как локалка",
+            "В режиме ДБД убийца бессмертен, не пытайтесь его убить",
+            "Мы проводим крутые ивенты почти каждый день",
+            "Качез не раздает патроны (наверное)",
+            "В нашем дискорд сервере возможно есть фури фембойчики",
+            "Никому не доверяй",
+            "Раньше здесь был мат",
+            "Тут был Зикерс",
+            "Кто прочитал тот тот который тот",
+            "привет",
+            "я сошёл с ума пытаясь пофиксить вайбкод",
+            "попробуйте City67",
+            "ненавижу html",
+            "я считаю что лост фронт слишком зафоршен",
+            "пижма не посмотрел стесняшку"
+        ];
+
+        let currentTipIndex = Math.floor(Math.random() * zCityTips.length);
+        const tipContainer = document.getElementById('tips-container');
+        const tipTextElement = document.getElementById('tip-text');
+
+        tipTextElement.innerText = zCityTips[currentTipIndex];
+
+        setInterval(() => {
+            tipContainer.style.opacity = 0;
+
+            setTimeout(() => {
+                let newIndex;
+                do {
+                    newIndex = Math.floor(Math.random() * zCityTips.length);
+                } while (newIndex === currentTipIndex);
+
+                currentTipIndex = newIndex;
+                tipTextElement.innerText = zCityTips[currentTipIndex];
+                tipContainer.style.opacity = 1;
+            }, 500);
+        }, 5000);
+
+        /* ============================================================
+           ФУНКЦИИ, КОТОРЫЕ ВЫЗЫВАЕТ GARRY'S MOD
+           ============================================================ */
+        let totalFiles = 0;
+        let neededFiles = 0;
+
+        function updateProgress() {
+            if (totalFiles === 0) return;
+
+            let downloaded = totalFiles - neededFiles;
+            let percent = Math.round((downloaded / totalFiles) * 100);
+
+            percent = Math.min(Math.max(percent, 0), 100);
+
+            document.getElementById('progress').style.width = percent + '%';
+            document.getElementById('percentage').innerText = percent + '%';
+        }
+
+        function GameDetails(servername, serverurl, mapname, maxplayers, steamid, gamemode, volume, language) {
+            startMusic();
+        }
+
+        function DownloadingFile(fileName) {
+            document.getElementById('status').innerText = 'Загрузка: ' + fileName;
+            startMusic();
+        }
+
+        function SetStatusChanged(status) {
+            document.getElementById('status').innerText = status;
+            startMusic();
+        }
+
+        function SetFilesTotal(total) {
+            totalFiles = Math.max(totalFiles, total);
+            updateProgress();
+            startMusic();
+        }
+
+        function SetFilesNeeded(needed) {
+            neededFiles = needed;
+            updateProgress();
+            startMusic();
+        }
+    </script>
+
+</body>
+</html>
